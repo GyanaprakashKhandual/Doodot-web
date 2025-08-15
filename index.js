@@ -4,6 +4,10 @@ const path = require('path');
 const cors = require('cors');
 
 
+// Routes 
+const authRoutes = require('./routes/user.route');
+
+
 // Functions
 const connectDB = require('./config/DB');
 
@@ -28,6 +32,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+app.use('/api/auth', authRoutes);
 // Port
 const PORT = process.env.PORT || 5000;
 
