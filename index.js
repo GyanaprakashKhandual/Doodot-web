@@ -19,7 +19,7 @@ const cors = require("cors");
 app.use(cors({
   origin: [
     "http://localhost:3000",
-    "https://dodot.vercel.app"
+    "https://doodot.vercel.app"
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true,
