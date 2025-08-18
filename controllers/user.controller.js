@@ -3,9 +3,7 @@ const { validationResult } = require('express-validator');
 const User = require('../models/user.model');
 const { generateToken } = require('../utils/token.util');
 
-// @desc Register a new user
-// @route POST /api/auth/register
-// @access Public
+
 const registerUser = async (req, res) => {
   // Check validation errors from express-validator
   const errors = validationResult(req);
@@ -44,9 +42,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc Login a user
-// @route POST /api/auth/login
-// @access Public
+
 const loginUser = async (req, res) => {
   // Check validation errors from express-validator
   const errors = validationResult(req);
