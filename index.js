@@ -6,7 +6,7 @@ const cors = require('cors');
 
 // Routes 
 const authRoutes = require('./routes/user.route');
-
+const todoRoutes = require('./routes/todo.routes');
 
 // Functions
 const connectDB = require('./config/DB');
@@ -34,6 +34,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/todo', todoRoutes);
 // Port
 const PORT = process.env.PORT || 5000;
 
