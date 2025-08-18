@@ -14,11 +14,17 @@ const connectDB = require('./config/DB');
 dotenv.config();
 const app = express();
 
+const cors = require("cors");
+
 app.use(cors({
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST', 'PUT', 'DELETE'],
-    credentials: true
+  origin: [
+    "http://localhost:3000",
+    "https://dodot.vercel.app"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
 }));
+
 
 // Middleware
 app.use(express.json());
