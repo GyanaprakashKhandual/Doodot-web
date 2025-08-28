@@ -1,4 +1,4 @@
-# Calf Backend - Tech Stack & Services
+# DooDot Backend - Tech Stack & Services
 
 ## 1. Frameworks & Libraries for Backend Development
 - Express.js : Backend Web Framework  
