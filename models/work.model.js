@@ -1,49 +1,28 @@
 const mongoose = require('mongoose');
 
+const workSchema = new mongoose.Schema({
 
-const todoSchema  = new mongoose.Schema(
-    {
-        user: {
-            type: mongoose.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        workType: {
-            type: String,
-            enum: ['Professional', 'Personal', 'Hobby', 'Time Pass'],
-            required: true,
-        },
-        workName: {
-            type: String,
-            required: true,
-        },
-        startDate: {
-            type: Date,
-            required: true
-        },
-        startTime: {
-            type: String,
-            required: true
-        },
-        endDate: {
-            type: Date,
-            required: true
-        },
-        endTime: {
-            type: String,
-            required: true
-        },
-        status: {
-            type: String,
-            enum: ['Working', 'Delayed', 'Paused', 'Canceled', 'Give up'],
-            required: true,
-        }
+    user: {
+        type: mongoose.Types.ObjectId,
+        ref: 'User',
+        required: true
     },
-    {
-        timestamps: true
+
+    projectName: {
+        type: String,
+        required: true,
+    },
+    
+    projectDesc: {
+        type: String,
+        default: 'No Description Server'
     }
-);
+}, { timestamps: true, toJSON: { virtuals: true}, toObject: { virtuals: true}});
 
 
-const Todo = mongoose.model('Todo', todoSchema);
-module.exports = Todo;
+workSchema.virtual('url').get(function() {
+    return `/works/${this._id}`;
+});
+
+const Work = mongoose.model('Work', workSchema);
+module.exports = Work;

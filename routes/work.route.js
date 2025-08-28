@@ -1,21 +1,27 @@
-// routes/todo.routes.js
-const express = require("express");
-const router = express.Router();
+const express = require('express');
 const {
-  createTodo,
-  getTodos,
-  getTodoById,
-  updateTodo,
-  deleteTodo,
-} = require("../controllers/todo.controller");
+    getWork,
+    getWorks,
+    createWork,
+    updateWork,
+    deleteWork
+} = require('../controllers/work.controller');
 
-const auth = require("../middlewares/auth.middleware");
+const protect = require('../middlewares/auth.middleware');
 
-// Protected routes
-router.post("/", auth, createTodo);
-router.get("/", auth, getTodos);
-router.get("/:id", auth, getTodoById);
-router.put("/:id", auth, updateTodo);
-router.delete("/:id", auth, deleteTodo);
+
+const router = express.Router();
+
+// All routes are protected and require authentication
+router.use(protect);
+
+router.route('/')
+    .get(getWorks)
+    .post(createWork);
+
+router.route('/:id')
+    .get(getWork)
+    .put(updateWork)
+    .delete(deleteWork);
 
 module.exports = router;

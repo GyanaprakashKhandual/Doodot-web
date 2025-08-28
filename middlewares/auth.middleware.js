@@ -1,8 +1,8 @@
 // middleware/auth.js
 const jwt = require("jsonwebtoken");
-const User = require("../models/user.model"); // adjust path
+const User = require("../models/user.model"); 
 
-const auth = async (req, res, next) => {
+const protect = async (req, res, next) => {
   let token;
 
   try {
@@ -32,4 +32,4 @@ const auth = async (req, res, next) => {
   }
 };
 
-module.exports = auth;
+module.exports = protect;
