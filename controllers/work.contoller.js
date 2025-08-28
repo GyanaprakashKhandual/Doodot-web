@@ -1,5 +1,5 @@
 // controllers/todo.controller.js
-const Todo = require("../models/todo.model");
+const Todo = require("../models/work.model");
 
 // @desc    Create a new todo
 // @route   POST /api/todos
