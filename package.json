@@ -27,5 +27,16 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
-  }
+  },
+  "directories": {
+    "doc": "docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GyanaprakashKhandual/DoDot-web.git"
+  },
+  "bugs": {
+    "url": "https://github.com/GyanaprakashKhandual/DoDot-web/issues"
+  },
+  "homepage": "https://github.com/GyanaprakashKhandual/DoDot-web#readme"
 }

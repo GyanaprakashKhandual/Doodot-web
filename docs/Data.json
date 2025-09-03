@@ -1,7 +1,7 @@
 {
   "auth": [
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/send-otp",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/send-otp",
       "method": "POST",
       "statusCode": 200,
       "testData": {
@@ -10,7 +10,7 @@
       "description": "Sends an OTP to the given email address for verification."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/register",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/register",
       "method": "POST",
       "statusCode": 201,
       "testData": {
@@ -22,7 +22,7 @@
       "description": "Verifies the OTP and registers a new user."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/login",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/login",
       "method": "POST",
       "statusCode": 200,
       "testData": {
@@ -32,28 +32,28 @@
       "description": "Logs in a registered user and returns a JWT token."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/logout",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/logout",
       "method": "POST",
       "statusCode": 200,
       "testData": {},
       "description": "Logs out the currently authenticated user."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/me",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/me",
       "method": "GET",
       "statusCode": 200,
       "testData": {},
       "description": "Fetches details of the currently authenticated user."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/google",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/google",
       "method": "GET",
       "statusCode": 302,
       "testData": {},
       "description": "Starts Google OAuth login flow (redirects to Google)."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/auth/google/callback",
+      "url": "https://doodot-web-service.onrender.com/api/v1/auth/google/callback",
       "method": "GET",
       "statusCode": 302,
       "testData": {},
@@ -62,14 +62,14 @@
   ],
   "project": [
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/project",
+      "url": "https://doodot-web-service.onrender.com/api/v1/project",
       "method": "GET",
       "statusCode": 200,
       "testData": {},
       "description": "Fetches all projects belonging to the authenticated user."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/project",
+      "url": "https://doodot-web-service.onrender.com/api/v1/project",
       "method": "POST",
       "statusCode": 201,
       "testData": {
@@ -79,14 +79,14 @@
       "description": "Creates a new project for the authenticated user."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/project/:id",
+      "url": "https://doodot-web-service.onrender.com/api/v1/project/:id",
       "method": "GET",
       "statusCode": 200,
       "testData": {},
       "description": "Fetches details of a specific project by ID."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/project/:id",
+      "url": "https://doodot-web-service.onrender.com/api/v1/project/:id",
       "method": "PUT",
       "statusCode": 200,
       "testData": {
@@ -96,7 +96,7 @@
       "description": "Updates details of an existing project by ID."
     },
     {
-      "url": "https://metronique-web-service.onrender.com/api/v1/project/:id",
+      "url": "https://doodot-web-service.onrender.com/api/v1/project/:id",
       "method": "DELETE",
       "statusCode": 200,
       "testData": {},

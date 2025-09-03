@@ -14,10 +14,10 @@ const sendOTPEmail = async (email, otp) => {
     });
 
     const mailOptions = {
-      from: `"Calf" <${process.env.EMAIL_USER}>`,
+      from: `"Doodot" <${process.env.EMAIL_USER}>`,
       to: email,
-      subject: "Your OTP for Calf Registration",
-      text: `Welcome to Calf! Your OTP verification code is: ${otp}. This code will expire in 5 minutes. Please do not share it with anyone.`,
+      subject: "Your OTP for DooDot Registration",
+      text: `Welcome to DooDot! Your OTP verification code is: ${otp}. This code will expire in 5 minutes. Please do not share it with anyone.`,
       html: otpTemplate(otp),
     };
 
