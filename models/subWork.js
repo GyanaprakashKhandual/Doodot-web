@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-const workSchema = new mongoose.Schema({
+const subWorkSchema = new mongoose.Schema({
 
     user: {
         type: mongoose.Types.ObjectId,
@@ -12,11 +12,16 @@ const workSchema = new mongoose.Schema({
         ref: 'WorkType',
         required: true
     },
-    workName: {
+    work: {
+        type: mongoose.Types.ObjectId,
+        ref: 'Work',
+        required: true
+    },
+    subWorkName: {
         type: String,
         default: 'No Work name'
     },
-    workDesc: {
+    subWorkDesc: {
         type: String,
         default: 'No Work description'
     },
@@ -26,7 +31,7 @@ const workSchema = new mongoose.Schema({
     endDate: {
         type: Date
     },
-    workLink: [
+    subWorkLink: [
         {
             type: String,
             default: 'No Link Provided'
@@ -37,4 +42,4 @@ const workSchema = new mongoose.Schema({
         enum: ['New', 'Open', 'Ongoing', 'Closed', 'Complete', 'Give Up', 'Delayed'],
         default: 'No Work Provided'
     }
-}, { timestamps: true })
+})
