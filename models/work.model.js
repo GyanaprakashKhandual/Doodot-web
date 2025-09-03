@@ -37,4 +37,7 @@ const workSchema = new mongoose.Schema({
         enum: ['New', 'Open', 'Ongoing', 'Closed', 'Complete', 'Give Up', 'Delayed'],
         default: 'No Work Provided'
     }
-}, { timestamps: true })
+}, { timestamps: true });
+
+const Work = mongoose.model('Work', workSchema);
+module.exports = Work;

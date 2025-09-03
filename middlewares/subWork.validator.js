@@ -1,6 +1,6 @@
 const { body } = require("express-validator");
 
-exports.workValidation = [
+exports.subWorkValidation = [
   body("user")
     .notEmpty()
     .withMessage("User is required")
@@ -13,15 +13,25 @@ exports.workValidation = [
     .isMongoId()
     .withMessage("Invalid work type ID"),
 
-  body("workName")
-    .optional()
-    .isString()
-    .withMessage("Work name must be a string"),
+  body("work")
+    .notEmpty()
+    .withMessage("Work is required")
+    .isMongoId()
+    .withMessage("Invalid work ID"),
 
-  body("workDesc")
+  body("subWorkName")
     .optional()
     .isString()
-    .withMessage("Work description must be a string"),
+    .withMessage("Sub-work name must be a string")
+    .isLength({ min: 2 })
+    .withMessage("Sub-work name must be at least 2 characters long"),
+
+  body("subWorkDesc")
+    .optional()
+    .isString()
+    .withMessage("Sub-work description must be a string")
+    .isLength({ min: 5 })
+    .withMessage("Sub-work description must be at least 5 characters long"),
 
   body("startDate")
     .optional()
@@ -33,15 +43,15 @@ exports.workValidation = [
     .isISO8601()
     .withMessage("End date must be a valid date"),
 
-  body("workLink")
+  body("subWorkLink")
     .optional()
     .isArray()
-    .withMessage("Work links must be an array"),
-  
-  body("workLink.*")
+    .withMessage("Sub-work links must be an array"),
+
+  body("subWorkLink.*")
     .optional()
     .isURL()
-    .withMessage("Each work link must be a valid URL"),
+    .withMessage("Each sub-work link must be a valid URL"),
 
   body("status")
     .optional()

@@ -42,4 +42,7 @@ const subWorkSchema = new mongoose.Schema({
         enum: ['New', 'Open', 'Ongoing', 'Closed', 'Complete', 'Give Up', 'Delayed'],
         default: 'No Work Provided'
     }
-})
+}, {timestamps: true});
+
+const SubWork = mongoose.model('SubWork', subWorkSchema);
+module.exports = SubWork;
