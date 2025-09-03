@@ -37,7 +37,7 @@ exports.workValidation = [
     .optional()
     .isArray()
     .withMessage("Work links must be an array"),
-  
+
   body("workLink.*")
     .optional()
     .isURL()

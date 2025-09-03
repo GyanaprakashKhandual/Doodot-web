@@ -95,13 +95,13 @@ function createApiCard(api, index) {
                             <div class="flex-1">
                                 <div class="flex items-center gap-3 mb-3">
                                     <span class="method-badge px-3 py-1 rounded-full ${getMethodColor(
-                                      api.method
-                                    )}">
+    api.method
+  )}">
                                         ${api.method}
                                     </span>
                                     <span class="text-sm font-medium ${getStatusColor(
-                                      api.statusCode
-                                    )}">
+    api.statusCode
+  )}">
                                         ${api.statusCode}
                                     </span>
                                 </div>
@@ -112,9 +112,8 @@ function createApiCard(api, index) {
                                     </code>
                                     <button 
                                         id="copy-url-${index}" 
-                                        onclick="copyToClipboard('${
-                                          api.url
-                                        }', 'copy-url-${index}')"
+                                        onclick="copyToClipboard('${api.url
+    }', 'copy-url-${index}')"
                                         class="copy-button p-2 rounded-lg hover:bg-gray-50/80 transition-all duration-200"
                                         title="Copy URL"
                                     >
@@ -129,9 +128,8 @@ function createApiCard(api, index) {
                         </div>
                     </div>
 
-                    ${
-                      hasTestData
-                        ? `
+                    ${hasTestData
+      ? `
                     <!-- Test Data Section -->
                     <div class="p-6">
                         <div class="flex items-center justify-between mb-4">
@@ -141,10 +139,10 @@ function createApiCard(api, index) {
                             <button 
                                 id="copy-data-${index}" 
                                 onclick="copyToClipboard('${JSON.stringify(
-                                  api.testData,
-                                  null,
-                                  2
-                                )}', 'copy-data-${index}')"
+        api.testData,
+        null,
+        2
+      )}', 'copy-data-${index}')"
                                 class="copy-button p-2 rounded-lg hover:bg-gray-50/80 transition-all duration-200"
                                 title="Copy test data"
                             >
@@ -154,13 +152,13 @@ function createApiCard(api, index) {
                         
                         <div class="code-block p-4 overflow-x-auto">
                             <pre class="text-sm"><code>${syntaxHighlight(
-                              api.testData
-                            )}</code></pre>
+        api.testData
+      )}</code></pre>
                         </div>
                     </div>
                     `
-                        : ""
-                    }
+      : ""
+    }
                 </div>
             `;
 }
@@ -175,18 +173,17 @@ function createSection(sectionName, apis) {
                         <div class="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-500 rounded-full"></div>
                         <h2 class="text-2xl font-bold text-gray-900">${sectionTitle} APIs</h2>
                         <span class="bg-gradient-to-r from-blue-50 to-purple-50 text-blue-600 px-3 py-1 rounded-full text-sm font-medium border border-blue-100/50">
-                            ${apis.length} endpoint${
-    apis.length !== 1 ? "s" : ""
-  }
+                            ${apis.length} endpoint${apis.length !== 1 ? "s" : ""
+    }
                         </span>
                     </div>
                     
                     <div class="grid-two-columns">
                         ${apis
-                          .map((api, index) =>
-                            createApiCard(api, `${sectionName}-${index}`)
-                          )
-                          .join("")}
+      .map((api, index) =>
+        createApiCard(api, `${sectionName}-${index}`)
+      )
+      .join("")}
                     </div>
                 </section>
             `;
