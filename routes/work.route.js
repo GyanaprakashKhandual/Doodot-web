@@ -10,11 +10,11 @@ const workValidator = require('../middlewares/work.validator');
 const router = express.Router(protect);
 
 // Work Routes
-router.post('/works', validate(workValidator), auth, workController.createWork);
-router.get('/works', auth, workController.getWorks);
-router.get('/works/:id', auth, workController.getWork);
-router.put('/works/:id', auth, workController.updateWork);
-router.delete('/works/:id', auth, workController.deleteWork);
+router.post('/', validate(workValidator), workController.createWork);
+router.get('/', workController.getWorks);
+router.get('/:id', workController.getWork);
+router.put('/:id', workController.updateWork);
+router.delete('/:id', workController.deleteWork);
 
 
 module.exports = router;

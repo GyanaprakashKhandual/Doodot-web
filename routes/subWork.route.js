@@ -5,13 +5,14 @@ const validate = require('../middlewares/validate.middleware')
 const subWorkController = require('../controllers/subWork.controller');
 const subWorkValidator = require('../middlewares/subWork.validator');
 
+
 const router = express.Router(protect);
 
 
-router.post('/sub-works', validate(subWorkValidator), auth, subWorkController.createSubWork);
-router.get('/sub-works', auth, subWorkController.getSubWorks);
-router.get('/sub-works/:id', auth, subWorkController.getSubWork);
-router.put('/sub-works/:id', auth, subWorkController.updateSubWork);
-router.delete('/sub-works/:id', auth, subWorkController.deleteSubWork);
+router.post('/', validate(subWorkValidator), subWorkController.createSubWork);
+router.get('/', subWorkController.getSubWorks);
+router.get('/:id', subWorkController.getSubWork);
+router.put('/:id', subWorkController.updateSubWork);
+router.delete('/:id', subWorkController.deleteSubWork);
 
 module.exports = router;
