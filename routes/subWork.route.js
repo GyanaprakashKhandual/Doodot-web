@@ -13,3 +13,5 @@ router.get('/sub-works', auth, subWorkController.getSubWorks);
 router.get('/sub-works/:id', auth, subWorkController.getSubWork);
 router.put('/sub-works/:id', auth, subWorkController.updateSubWork);
 router.delete('/sub-works/:id', auth, subWorkController.deleteSubWork);
+
+module.exports = router;

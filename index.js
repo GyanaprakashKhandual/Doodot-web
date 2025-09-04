@@ -12,17 +12,19 @@ const connectDB = require('./configs/db.config');
 
 // Routing Files
 const authRoutes = require('./routes/user.route');
+const workTypeRoutes = require('./routes/workType.route');
 const workRoutes = require('./routes/work.route')
+const subWorkRoutes = require('./routes/subWork.route');
 
 const app = express();
 app.use(express.json());
 
 app.use(
     session({
-        secret: process.env.SESSION_SECRET || "yoursecretkey",
+        secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: false,
-        cookie: { secure: false }, // true only if HTTPS
+        cookie: { secure: false },
     })
 );
 
@@ -50,7 +52,9 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/work-type', workTypeRoutes);
 app.use('/api/v1/work', workRoutes);
+app.use('/api/v1/sub-work', subWorkRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

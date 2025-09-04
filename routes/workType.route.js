@@ -18,3 +18,5 @@ router.get('/work-types', auth, workTypeController.getWorkTypes);
 router.get('/work-types/:id', auth, workTypeController.getWorkType);
 router.put('/work-types/:id', auth, workTypeController.updateWorkType);
 router.delete('/work-types/:id', auth, workTypeController.deleteWorkType);
+
+module.exports = router;

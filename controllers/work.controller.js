@@ -1,5 +1,5 @@
 const Work = require('../models/work.model');
-const SubWork = require('../models/');
+const SubWork = require('../models/subWork.model');
 
 // Create Work
 exports.createWork = async (req, res) => {
