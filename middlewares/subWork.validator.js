@@ -1,24 +1,7 @@
 const { body } = require("express-validator");
 
 exports.subWorkValidation = [
-  body("user")
-    .notEmpty()
-    .withMessage("User is required")
-    .isMongoId()
-    .withMessage("Invalid user ID"),
-
-  body("workType")
-    .notEmpty()
-    .withMessage("Work type is required")
-    .isMongoId()
-    .withMessage("Invalid work type ID"),
-
-  body("work")
-    .notEmpty()
-    .withMessage("Work is required")
-    .isMongoId()
-    .withMessage("Invalid work ID"),
-
+  
   body("subWorkName")
     .optional()
     .isString()

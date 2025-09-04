@@ -140,7 +140,7 @@ const googleAuthSuccess = async (req, res) => {
   try {
     // Generate JWT token
     const token = generateToken(req.user._id);
-    
+
     // Return user data (excluding password) and token
     const userResponse = {
       _id: req.user._id,
