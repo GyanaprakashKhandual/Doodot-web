@@ -8,7 +8,7 @@ const todoSchema = new mongoose.Schema({
     },
     workType: {
         type: String,
-        default: "No Work Type"
+        enum: ['Personal', 'Professional', 'Fun', 'Time Pass', 'Urgent']
     },
     workDesc: {
         type: String,
@@ -25,6 +25,14 @@ const todoSchema = new mongoose.Schema({
     },
     endTime: {
         type: Date
+    },
+    priority: {
+        type: String,
+        enum: ['HIGH', 'Low', 'Medium', 'Urgent']
+    },
+    status: {
+        type: String,
+        enum: ['TODO', 'Delayed', 'Give Up', 'In Progress', 'Completed']
     },
     links: [
         {
