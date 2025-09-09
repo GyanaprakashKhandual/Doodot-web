@@ -1,195 +1,97 @@
-const User = require('../models/user.model');
-const OTP = require('../models/otp.model');
-const jwt = require('jsonwebtoken')
-const { generateToken } = require('../utils/token.util');
-const { sendOTPEmail } = require('../configs/mail.config');
+const TODO = require('../models/todo');
 
-const generateOTP = require('../utils/otp.util');
-
-
-// Send OTP to user's email
-const sendOTP = async (req, res) => {
+// Create new TODO
+exports.createTodo = async (req, res) => {
   try {
-    const { email } = req.body;
+    const { workType, workDesc, startDate, endDate, startTime, endTime, links } = req.body;
+    const userId = req.user?._id || req.body.user; // assuming userId comes from auth middleware or body
 
-    // Check if user already exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists" });
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
     }
 
-    // Generate OTP
-    const otp = generateOTP();
+    const newTodo = new TODO({
+      user: userId,
+      workType,
+      workDesc,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+      links
+    });
 
-    // Save OTP to database
-    await OTP.create({ email, otp });
-
-    // Send OTP via email
-    await sendOTPEmail(email, otp);
-
-    res.status(200).json({ message: "OTP sent successfully" });
+    await newTodo.save();
+    res.status(201).json({ message: "Todo created successfully", todo: newTodo });
   } catch (error) {
-    console.error("Error in sendOTP:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error creating todo", error: error.message });
   }
 };
 
-// Verify OTP and register user
-const verifyOTPAndRegister = async (req, res) => {
+// Get all todos for a user
+exports.getTodosByUser = async (req, res) => {
   try {
-    const { name, email, password, otp } = req.body;
+    const userId = req.params.userId;
 
-    // Find the OTP record
-    const otpRecord = await OTP.findOne({ email, otp });
-
-    if (!otpRecord) {
-      return res.status(400).json({ message: "Invalid OTP" });
-    }
-
-    // Check if OTP is expired
-    const now = new Date();
-    const otpCreatedAt = new Date(otpRecord.createdAt);
-    const diffInMinutes = (now - otpCreatedAt) / (1000 * 60);
-
-    if (diffInMinutes > 5) { // OTP expires after 5 minutes
-      await OTP.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({ message: "OTP has expired" });
-    }
-
-    // Create new user
-    const user = await User.create({
-      name,
-      email,
-      password,
-      isVerified: true,
-    });
-
-    // Delete the used OTP
-    await OTP.deleteOne({ _id: otpRecord._id });
-
-    // Generate JWT token
-    const token = generateToken(user._id);
-
-    // Return user data (excluding password) and token
-    const userResponse = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isVerified: user.isVerified,
-    };
-
-    res.status(201).json({
-      message: "User registered successfully",
-      user: userResponse,
-      token,
-    });
+    const todos = await TODO.find({ user: userId }).sort({ createdAt: -1 });
+    res.status(200).json({ count: todos.length, todos });
   } catch (error) {
-    console.error("Error in verifyOTPAndRegister:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error fetching todos", error: error.message });
   }
 };
 
-// Login user
-const loginUser = async (req, res) => {
+// Get single todo
+exports.getSingleTodo = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    console.log('Login attempt for:', email); // Debug log
+    const { id } = req.params;
+    const todo = await TODO.findById(id);
 
-    const user = await User.findOne({ email });
-    console.log('User found:', user); // Debug log
-
-    if (!user) {
-      console.log('No user found with this email'); // Debug log
-      return res.status(401).json({ message: "Invalid credentials" });
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found" });
     }
 
-    console.log('Stored hashed password:', user.password); // Debug log
-    const isPasswordValid = await user.comparePassword(password);
-    console.log('Password valid:', isPasswordValid); // Debug log
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-    const token = generateToken(user._id);
-
-    // Return user data (excluding password) and token
-    const userResponse = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isVerified: user.isVerified,
-    };
-
-    res.status(200).json({
-      message: "Login successful",
-      user: userResponse,
-      token,
-    });
-
+    res.status(200).json(todo);
   } catch (error) {
-    console.error("Error in loginUser:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-const logoutUser = (req, res) => {
-  res.status(200).json({ message: "Logout successful" });
-};
-
-
-const googleAuthSuccess = async (req, res) => {
-  try {
-    // Generate JWT token
-    const token = generateToken(req.user._id);
-
-    // Return user data (excluding password) and token
-    const userResponse = {
-      _id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      isVerified: req.user.isVerified,
-    };
-
-    res.status(200).json({
-      message: "Google authentication successful",
-      user: userResponse,
-      token,
-    });
-  } catch (error) {
-    console.error("Error in googleAuthSuccess:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-}
-
-const getUserDetails = async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "No token provided" });
-    }
-
-    const token = authHeader.split(" ")[1];
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.id).select("-password");
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    res.status(200).json({
-      message: "User details fetched successfully",
-      user,
-    });
-  } catch (error) {
-    console.error("Error in getUserDetails:", error);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Error fetching todo", error: error.message });
   }
 };
 
-module.exports = {
-  sendOTP,
-  verifyOTPAndRegister,
-  loginUser,
-  logoutUser,
-  googleAuthSuccess,
-  getUserDetails
+// Update todo
+exports.updateTodo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id || req.body.user;
+
+    const todo = await TODO.findOneAndUpdate(
+      { _id: id, user: userId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found or not authorized" });
+    }
+
+    res.status(200).json({ message: "Todo updated successfully", todo });
+  } catch (error) {
+    res.status(500).json({ message: "Error updating todo", error: error.message });
+  }
+};
+
+// Delete todo
+exports.deleteTodo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?._id || req.body.user;
+
+    const todo = await TODO.findOneAndDelete({ _id: id, user: userId });
+
+    if (!todo) {
+      return res.status(404).json({ message: "Todo not found or not authorized" });
+    }
+
+    res.status(200).json({ message: "Todo deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting todo", error: error.message });
+  }
 };
