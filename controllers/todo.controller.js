@@ -15,11 +15,8 @@ exports.createTodo = async (req, res) => {
       links
     } = req.body;
 
-    const userId = req.user?._id || req.body.user; // assume JWT middleware or pass in body
-
-    if (!userId) {
-      return res.status(400).json({ message: "User ID is required" });
-    }
+    // user comes from auth middleware
+    const userId = req.user._id;
 
     const newTodo = new TODO({
       user: userId,
@@ -41,10 +38,10 @@ exports.createTodo = async (req, res) => {
   }
 };
 
-// ✅ Get all todos for a user
-exports.getTodosByUser = async (req, res) => {
+// ✅ Get all todos for logged-in user
+exports.getMyTodos = async (req, res) => {
   try {
-    const userId = req.params.userId;
+    const userId = req.user._id;
 
     const todos = await TODO.find({ user: userId }).sort({ createdAt: -1 });
     res.status(200).json({ count: todos.length, todos });
@@ -53,14 +50,16 @@ exports.getTodosByUser = async (req, res) => {
   }
 };
 
-// ✅ Get single todo
+// ✅ Get single todo (only if owned by user)
 exports.getSingleTodo = async (req, res) => {
   try {
     const { id } = req.params;
-    const todo = await TODO.findById(id);
+    const userId = req.user._id;
+
+    const todo = await TODO.findOne({ _id: id, user: userId });
 
     if (!todo) {
-      return res.status(404).json({ message: "Todo not found" });
+      return res.status(404).json({ message: "Todo not found or not authorized" });
     }
 
     res.status(200).json(todo);
@@ -69,11 +68,11 @@ exports.getSingleTodo = async (req, res) => {
   }
 };
 
-// ✅ Update todo
+// ✅ Update todo (only if owned by user)
 exports.updateTodo = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user?._id || req.body.user;
+    const userId = req.user._id;
 
     const todo = await TODO.findOneAndUpdate(
       { _id: id, user: userId },
@@ -91,11 +90,11 @@ exports.updateTodo = async (req, res) => {
   }
 };
 
-// ✅ Delete todo
+// ✅ Delete todo (only if owned by user)
 exports.deleteTodo = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user?._id || req.body.user;
+    const userId = req.user._id;
 
     const todo = await TODO.findOneAndDelete({ _id: id, user: userId });
 
