@@ -12,9 +12,7 @@ const connectDB = require('./configs/db.config');
 
 // Routing Files
 const authRoutes = require('./routes/user.route');
-const workTypeRoutes = require('./routes/workType.route');
-const workRoutes = require('./routes/work.route')
-const subWorkRoutes = require('./routes/subWork.route');
+const todoRoutes = require('./routes/todo.route');
 
 const app = express();
 app.use(express.json());
@@ -52,9 +50,7 @@ app.get('/', (req, res) => {
 });
 
 app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/work-type', workTypeRoutes);
-app.use('/api/v1/work', workRoutes);
-app.use('/api/v1/sub-work', subWorkRoutes);
+app.use('/api/v1/to-do', todoRoutes);
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

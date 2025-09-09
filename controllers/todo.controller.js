@@ -1,133 +1,97 @@
-const Work = require('../models/work.model');
-const SubWork = require('../models/subWork.model');
+const TODO = require('../models/todo.model');
 
-// Create Work
-exports.createWork = async (req, res) => {
+// Create new TODO
+exports.createTodo = async (req, res) => {
     try {
-        const {
+        const { workType, workDesc, startDate, endDate, startTime, endTime, links } = req.body;
+        const userId = req.user?._id || req.body.user; // assuming userId comes from auth middleware or body
+
+        if (!userId) {
+            return res.status(400).json({ message: "User ID is required" });
+        }
+
+        const newTodo = new TODO({
+            user: userId,
             workType,
-            workName,
             workDesc,
             startDate,
             endDate,
-            workLink,
-            status
-        } = req.body;
-        
-        const work = new Work({
-            user: req.user.id,
-            workType,
-            workName,
-            workDesc,
-            startDate,
-            endDate,
-            workLink,
-            status
+            startTime,
+            endTime,
+            links
         });
-        
-        const savedWork = await work.save();
-        
-        // Populate workType details in response
-        await savedWork.populate('workType', 'workTypeName workTypeDesc');
-        
-        res.status(201).json(savedWork);
+
+        await newTodo.save();
+        res.status(201).json({ message: "Todo created successfully", todo: newTodo });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Error creating todo", error: error.message });
     }
 };
 
-// Get all Works for a user (with optional workType filter)
-exports.getWorks = async (req, res) => {
+// Get all todos for a user
+exports.getTodosByUser = async (req, res) => {
     try {
-        let filter = { user: req.user.id };
-        
-        // If workType query parameter is provided, filter by workType
-        if (req.query.workType) {
-            filter.workType = req.query.workType;
+        const userId = req.params.userId;
+
+        const todos = await TODO.find({ user: userId }).sort({ createdAt: -1 });
+        res.status(200).json({ count: todos.length, todos });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching todos", error: error.message });
+    }
+};
+
+// Get single todo
+exports.getSingleTodo = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const todo = await TODO.findById(id);
+
+        if (!todo) {
+            return res.status(404).json({ message: "Todo not found" });
         }
-        
-        const works = await Work.find(filter)
-            .populate('workType', 'workTypeName workTypeDesc');
-        
-        res.json(works);
+
+        res.status(200).json(todo);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Error fetching todo", error: error.message });
     }
 };
 
-// Get single Work
-exports.getWork = async (req, res) => {
+// Update todo
+exports.updateTodo = async (req, res) => {
     try {
-        const work = await Work.findOne({ 
-            _id: req.params.id, 
-            user: req.user.id 
-        }).populate('workType', 'workTypeName workTypeDesc');
-        
-        if (!work) {
-            return res.status(404).json({ message: 'Work not found' });
-        }
-        
-        res.json(work);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+        const { id } = req.params;
+        const userId = req.user?._id || req.body.user;
 
-// Update Work
-exports.updateWork = async (req, res) => {
-    try {
-        const {
-            workName,
-            workDesc,
-            startDate,
-            endDate,
-            workLink,
-            status
-        } = req.body;
-        
-        const work = await Work.findOneAndUpdate(
-            { _id: req.params.id, user: req.user.id },
-            {
-                workName,
-                workDesc,
-                startDate,
-                endDate,
-                workLink,
-                status
-            },
+        const todo = await TODO.findOneAndUpdate(
+            { _id: id, user: userId },
+            req.body,
             { new: true, runValidators: true }
-        ).populate('workType', 'workTypeName workTypeDesc');
-        
-        if (!work) {
-            return res.status(404).json({ message: 'Work not found' });
+        );
+
+        if (!todo) {
+            return res.status(404).json({ message: "Todo not found or not authorized" });
         }
-        
-        res.json(work);
+
+        res.status(200).json({ message: "Todo updated successfully", todo });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Error updating todo", error: error.message });
     }
 };
 
-// Delete Work and all associated SubWorks
-exports.deleteWork = async (req, res) => {
+// Delete todo
+exports.deleteTodo = async (req, res) => {
     try {
-        const work = await Work.findOne({ 
-            _id: req.params.id, 
-            user: req.user.id 
-        });
-        
-        if (!work) {
-            return res.status(404).json({ message: 'Work not found' });
+        const { id } = req.params;
+        const userId = req.user?._id || req.body.user;
+
+        const todo = await TODO.findOneAndDelete({ _id: id, user: userId });
+
+        if (!todo) {
+            return res.status(404).json({ message: "Todo not found or not authorized" });
         }
-        
-        // Delete all subWorks associated with this work
-        await SubWork.deleteMany({ work: req.params.id });
-        
-        // Delete the work
-        await Work.findByIdAndDelete(req.params.id);
-        
-        res.json({ message: 'Work and all associated subWorks deleted successfully' });
+
+        res.status(200).json({ message: "Todo deleted successfully" });
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        res.status(500).json({ message: "Error deleting todo", error: error.message });
     }
 };
