@@ -1,13 +1,12 @@
 const { body } = require("express-validator");
 
 exports.todoValidator = [
-  // ✅ Work Type
+
   body("workType")
     .optional()
     .isIn(['Personal', 'Professional', 'Fun', 'Time Pass', 'Urgent'])
     .withMessage("Invalid work type. Allowed values: Personal, Professional, Fun, Time Pass, Urgent"),
 
-  // ✅ Work Description
   body("workDesc")
     .optional()
     .isString().withMessage("Work description must be a string")

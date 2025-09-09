@@ -7,7 +7,7 @@ const { todoValidator } = require('../middlewares/todo.validator');
 
 // Routes
 router.post('/create',protect, validate(todoValidator), todoController.createTodo);
-router.get('/user/:userId',protect, todoController.getTodosByUser);
+router.get('/:userId',protect, todoController.getTodosByUser);
 router.get('/:id',protect, todoController.getSingleTodo);
 router.put('/:id',protect, todoController.updateTodo);
 router.delete('/:id',protect, todoController.deleteTodo);
