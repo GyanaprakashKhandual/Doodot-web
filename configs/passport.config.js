@@ -19,13 +19,11 @@ passport.use(
         });
 
         if (user) {
-          // If user exists but doesn't have googleId, update it
           if (!user.googleId) {
             user.googleId = profile.id;
             await user.save();
           }
         } else {
-          // Create new user
           user = await User.create({
             googleId: profile.id,
             name: profile.displayName,

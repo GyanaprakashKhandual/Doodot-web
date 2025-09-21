@@ -124,7 +124,7 @@ const otpTemplate = (otp) => `
                     font-size: 14px;
                     margin: 0;
                     line-height: 1.5;
-                ">This code expires in <strong>5 minutes</strong> and should never be shared with anyone. Calf will never ask for your OTP via phone or email.</p>
+                ">This code expires in <strong>5 minutes</strong> and should never be shared with anyone. Doodot will never ask for your OTP via phone or email.</p>
             </div>
             
             <hr style="

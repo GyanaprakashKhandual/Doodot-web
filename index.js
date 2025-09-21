@@ -5,12 +5,12 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const passport = require('./configs/passport.config');
-const session = require('express-session');   
+const session = require('express-session');
 
-// Configuration Files
+
 const connectDB = require('./configs/db.config');
 
-// Routing Files
+
 const authRoutes = require('./routes/user.route');
 const todoRoutes = require('./routes/todo.route');
 
@@ -37,7 +37,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
     origin: [
         'http://localhost:3000',
-        'https://doodot.vercel.app'
+        'https://doodot-app-service.vercel.app',
+        'https://doodot.nexly.com'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true
@@ -47,6 +48,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.use((req, res, next) => {
+    if (req.path === '/') {
+        return next();
+    }
+    res.sendFile(path.join(__dirname, 'public', 'main.html'))
 });
 
 app.use('/api/v1/auth', authRoutes);
