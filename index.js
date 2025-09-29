@@ -50,12 +50,7 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.use((req, res, next) => {
-    if (req.path === '/') {
-        return next();
-    }
-    res.sendFile(path.join(__dirname, 'public', 'main.html'))
-});
+
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/to-do', todoRoutes);

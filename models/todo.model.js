@@ -39,7 +39,7 @@ const todoSchema = new mongoose.Schema({
             type: String
         }
     ]
-}, {timestamps: true})
+}, { timestamps: true })
 
 const TODO = mongoose.model('TODO', todoSchema);
 module.exports = TODO;

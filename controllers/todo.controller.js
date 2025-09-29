@@ -1,307 +1,595 @@
 const TODO = require('../models/todo.model');
-const { validationResult } = require('express-validator');
+const mongoose = require('mongoose');
 
 // Create a new TODO
-exports.createTodo = async (req, res) => {
+const createTodo = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
-    }
+    const { workType, workDesc, startDate, endDate, startTime, endTime, priority, status, links } = req.body;
 
-    const {
+    const newTodo = new TODO({
+      user: req.user._id, // Assuming user is attached via auth middleware
       workType,
       workDesc,
-      startDate,
-      endDate,
-      startTime,
-      endTime,
-      priority,
-      status,
-      links
-    } = req.body;
-
-    const todo = new TODO({
-      user: req.user._id,
-      workType,
-      workDesc: workDesc || "No Work Description",
       startDate,
       endDate,
       startTime,
       endTime,
       priority,
       status: status || 'TODO',
-      links: links || []
+      links
     });
 
-    const savedTodo = await todo.save();
+    const savedTodo = await newTodo.save();
     res.status(201).json({
+      success: true,
       message: 'TODO created successfully',
-      todo: savedTodo
+      data: savedTodo
     });
   } catch (error) {
-    console.error('Create TODO error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error creating TODO',
+      error: error.message
+    });
   }
 };
 
-// Get all TODOs with filtering and pagination
-exports.getAllTodos = async (req, res) => {
+// Get all TODOs for logged-in user
+const getAllTodos = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 10;
-    const skip = (page - 1) * limit;
-
-    // Build filter object
-    let filter = { user: req.user._id };
-
-    // Add optional filters
-    if (req.query.workType) {
-      filter.workType = { $in: req.query.workType.split(',') };
-    }
-
-    if (req.query.priority) {
-      filter.priority = { $in: req.query.priority.split(',') };
-    }
-
-    if (req.query.status) {
-      filter.status = { $in: req.query.status.split(',') };
-    }
-
-    // Date range filters
-    if (req.query.startDateFrom || req.query.startDateTo) {
-      filter.startDate = {};
-      if (req.query.startDateFrom) {
-        filter.startDate.$gte = new Date(req.query.startDateFrom);
-      }
-      if (req.query.startDateTo) {
-        filter.startDate.$lte = new Date(req.query.startDateTo);
-      }
-    }
-
-    if (req.query.endDateFrom || req.query.endDateTo) {
-      filter.endDate = {};
-      if (req.query.endDateFrom) {
-        filter.endDate.$gte = new Date(req.query.endDateFrom);
-      }
-      if (req.query.endDateTo) {
-        filter.endDate.$lte = new Date(req.query.endDateTo);
-      }
-    }
-
-    // Search in work description
-    if (req.query.search) {
-      filter.workDesc = { $regex: req.query.search, $options: 'i' };
-    }
-
-    const todos = await TODO.find(filter)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(limit)
-      .populate('user', 'name email');
-
-    const total = await TODO.countDocuments(filter);
-
-    res.json({
-      todos,
-      pagination: {
-        current: page,
-        pages: Math.ceil(total / limit),
-        total,
-        hasNext: page * limit < total,
-        hasPrev: page > 1
-      }
+    const todos = await TODO.find({ user: req.user._id }).sort({ createdAt: -1 });
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      data: todos
     });
   } catch (error) {
-    console.error('Get TODOs error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODOs',
+      error: error.message
+    });
   }
 };
 
 // Get single TODO by ID
-exports.getTodoById = async (req, res) => {
+const getTodoById = async (req, res) => {
   try {
-    const todo = await TODO.findOne({
-      _id: req.params.id,
-      user: req.user._id
-    }).populate('user', 'name email');
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid TODO ID'
+      });
+    }
+
+    const todo = await TODO.findOne({ _id: id, user: req.user._id });
 
     if (!todo) {
-      return res.status(404).json({ message: 'TODO not found' });
+      return res.status(404).json({
+        success: false,
+        message: 'TODO not found'
+      });
     }
 
-    res.json({ todo });
+    res.status(200).json({
+      success: true,
+      data: todo
+    });
   } catch (error) {
-    console.error('Get TODO by ID error:', error);
-    if (error.name === 'CastError') {
-      return res.status(400).json({ message: 'Invalid TODO ID' });
-    }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODO',
+      error: error.message
+    });
   }
 };
 
 // Update TODO
-exports.updateTodo = async (req, res) => {
+const updateTodo = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+    const { id } = req.params;
+    const updates = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid TODO ID'
+      });
     }
 
-    const {
-      workType,
-      workDesc,
-      startDate,
-      endDate,
-      startTime,
-      endTime,
-      priority,
-      status,
-      links
-    } = req.body;
+    // Prevent user field update
+    delete updates.user;
 
-    const updateData = {};
-    if (workType !== undefined) updateData.workType = workType;
-    if (workDesc !== undefined) updateData.workDesc = workDesc;
-    if (startDate !== undefined) updateData.startDate = startDate;
-    if (endDate !== undefined) updateData.endDate = endDate;
-    if (startTime !== undefined) updateData.startTime = startTime;
-    if (endTime !== undefined) updateData.endTime = endTime;
-    if (priority !== undefined) updateData.priority = priority;
-    if (status !== undefined) updateData.status = status;
-    if (links !== undefined) updateData.links = links;
-
-    const todo = await TODO.findOneAndUpdate(
-      { _id: req.params.id, user: req.user._id },
-      updateData,
+    const updatedTodo = await TODO.findOneAndUpdate(
+      { _id: id, user: req.user._id },
+      updates,
       { new: true, runValidators: true }
     );
 
-    if (!todo) {
-      return res.status(404).json({ message: 'TODO not found' });
+    if (!updatedTodo) {
+      return res.status(404).json({
+        success: false,
+        message: 'TODO not found'
+      });
     }
 
-    res.json({
+    res.status(200).json({
+      success: true,
       message: 'TODO updated successfully',
-      todo
+      data: updatedTodo
     });
   } catch (error) {
-    console.error('Update TODO error:', error);
-    if (error.name === 'CastError') {
-      return res.status(400).json({ message: 'Invalid TODO ID' });
-    }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error updating TODO',
+      error: error.message
+    });
   }
 };
 
 // Delete TODO
-exports.deleteTodo = async (req, res) => {
+const deleteTodo = async (req, res) => {
   try {
-    const todo = await TODO.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user._id
+    const { id } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid TODO ID'
+      });
+    }
+
+    const deletedTodo = await TODO.findOneAndDelete({ _id: id, user: req.user._id });
+
+    if (!deletedTodo) {
+      return res.status(404).json({
+        success: false,
+        message: 'TODO not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'TODO deleted successfully',
+      data: deletedTodo
     });
-
-    if (!todo) {
-      return res.status(404).json({ message: 'TODO not found' });
-    }
-
-    res.json({ message: 'TODO deleted successfully' });
   } catch (error) {
-    console.error('Delete TODO error:', error);
-    if (error.name === 'CastError') {
-      return res.status(400).json({ message: 'Invalid TODO ID' });
-    }
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting TODO',
+      error: error.message
+    });
   }
 };
 
-// Get TODO statistics
-exports.getTodoStats = async (req, res) => {
+// Delete multiple TODOs
+const deleteMultipleTodos = async (req, res) => {
   try {
+    const { ids } = req.body; // Array of IDs
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of TODO IDs'
+      });
+    }
+
+    const result = await TODO.deleteMany({
+      _id: { $in: ids },
+      user: req.user._id
+    });
+
+    res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} TODO(s) deleted successfully`,
+      deletedCount: result.deletedCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error deleting TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Search TODOs
+const searchTodos = async (req, res) => {
+  try {
+    const { query } = req.query;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        message: 'Search query is required'
+      });
+    }
+
+    const todos = await TODO.find({
+      user: req.user._id,
+      $or: [
+        { workDesc: { $regex: query, $options: 'i' } },
+        { workType: { $regex: query, $options: 'i' } },
+        { priority: { $regex: query, $options: 'i' } },
+        { status: { $regex: query, $options: 'i' } }
+      ]
+    }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error searching TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Filter TODOs with multiple criteria
+const filterTodos = async (req, res) => {
+  try {
+    const { workType, priority, status, startDate, endDate, sortBy, order } = req.query;
+
+    const filter = { user: req.user._id };
+
+    // Add filters
+    if (workType) filter.workType = workType;
+    if (priority) filter.priority = priority;
+    if (status) filter.status = status;
+
+    // Date range filter
+    if (startDate || endDate) {
+      filter.startDate = {};
+      if (startDate) filter.startDate.$gte = new Date(startDate);
+      if (endDate) filter.startDate.$lte = new Date(endDate);
+    }
+
+    // Sorting
+    let sortOptions = { createdAt: -1 }; // Default sort
+    if (sortBy) {
+      const sortOrder = order === 'asc' ? 1 : -1;
+      sortOptions = { [sortBy]: sortOrder };
+    }
+
+    const todos = await TODO.find(filter).sort(sortOptions);
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      filters: { workType, priority, status, startDate, endDate },
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error filtering TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Get TODOs by status
+const getTodosByStatus = async (req, res) => {
+  try {
+    const { status } = req.params;
+
+    const validStatuses = ['TODO', 'Delayed', 'Give Up', 'In Progress', 'Completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const todos = await TODO.find({ user: req.user._id, status }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      status,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODOs by status',
+      error: error.message
+    });
+  }
+};
+
+// Get TODOs by priority
+const getTodosByPriority = async (req, res) => {
+  try {
+    const { priority } = req.params;
+
+    const validPriorities = ['HIGH', 'Low', 'Medium', 'Urgent'];
+    if (!validPriorities.includes(priority)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid priority value'
+      });
+    }
+
+    const todos = await TODO.find({ user: req.user._id, priority }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      priority,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODOs by priority',
+      error: error.message
+    });
+  }
+};
+
+// Get TODOs by work type
+const getTodosByWorkType = async (req, res) => {
+  try {
+    const { workType } = req.params;
+
+    const validWorkTypes = ['Personal', 'Professional', 'Fun', 'Time Pass', 'Urgent'];
+    if (!validWorkTypes.includes(workType)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid work type value'
+      });
+    }
+
+    const todos = await TODO.find({ user: req.user._id, workType }).sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      workType,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODOs by work type',
+      error: error.message
+    });
+  }
+};
+
+// Get overdue TODOs
+const getOverdueTodos = async (req, res) => {
+  try {
+    const currentDate = new Date();
+
+    const todos = await TODO.find({
+      user: req.user._id,
+      endDate: { $lt: currentDate },
+      status: { $nin: ['Completed', 'Give Up'] }
+    }).sort({ endDate: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching overdue TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Get upcoming TODOs (next 7 days)
+const getUpcomingTodos = async (req, res) => {
+  try {
+    const currentDate = new Date();
+    const nextWeek = new Date();
+    nextWeek.setDate(currentDate.getDate() + 7);
+
+    const todos = await TODO.find({
+      user: req.user._id,
+      startDate: { $gte: currentDate, $lte: nextWeek },
+      status: { $nin: ['Completed', 'Give Up'] }
+    }).sort({ startDate: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching upcoming TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Get today's TODOs
+const getTodaysTodos = async (req, res) => {
+  try {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date();
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const todos = await TODO.find({
+      user: req.user._id,
+      startDate: { $gte: startOfDay, $lte: endOfDay }
+    }).sort({ startTime: 1 });
+
+    res.status(200).json({
+      success: true,
+      count: todos.length,
+      data: todos
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching today\'s TODOs',
+      error: error.message
+    });
+  }
+};
+
+// Get statistics/summary
+const getTodoStats = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
     const stats = await TODO.aggregate([
-      { $match: { user: req.user._id } },
+      { $match: { user: userId } },
       {
-        $group: {
-          _id: null,
-          total: { $sum: 1 },
-          completed: {
-            $sum: { $cond: [{ $eq: ['$status', 'Completed'] }, 1, 0] }
-          },
-          inProgress: {
-            $sum: { $cond: [{ $eq: ['$status', 'In Progress'] }, 1, 0] }
-          },
-          todo: {
-            $sum: { $cond: [{ $eq: ['$status', 'TODO'] }, 1, 0] }
-          },
-          delayed: {
-            $sum: { $cond: [{ $eq: ['$status', 'Delayed'] }, 1, 0] }
-          },
-          byWorkType: {
-            $push: {
-              workType: '$workType',
-              status: '$status'
-            }
-          }
-        }
-      },
-      {
-        $project: {
-          total: 1,
-          completed: 1,
-          inProgress: 1,
-          todo: 1,
-          delayed: 1,
-          workTypeBreakdown: {
-            $arrayToObject: {
-              $map: {
-                input: ['Personal', 'Professional', 'Fun', 'Time Pass', 'Urgent'],
-                as: "wt",
-                in: {
-                  k: "$$wt",
-                  v: {
-                    total: {
-                      $size: {
-                        $filter: {
-                          input: "$byWorkType",
-                          as: "item",
-                          cond: { $eq: ["$$item.workType", "$$wt"] }
-                        }
-                      }
-                    },
-                    completed: {
-                      $size: {
-                        $filter: {
-                          input: "$byWorkType",
-                          as: "item",
-                          cond: {
-                            $and: [
-                              { $eq: ["$$item.workType", "$$wt"] },
-                              { $eq: ["$$item.status", "Completed"] }
-                            ]
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
+        $facet: {
+          byStatus: [
+            { $group: { _id: '$status', count: { $sum: 1 } } }
+          ],
+          byPriority: [
+            { $group: { _id: '$priority', count: { $sum: 1 } } }
+          ],
+          byWorkType: [
+            { $group: { _id: '$workType', count: { $sum: 1 } } }
+          ],
+          total: [
+            { $count: 'count' }
+          ]
         }
       }
     ]);
 
-    res.json(stats[0] || {
-      total: 0,
-      completed: 0,
-      inProgress: 0,
-      todo: 0,
-      delayed: 0,
-      workTypeBreakdown: {}
+    res.status(200).json({
+      success: true,
+      data: {
+        total: stats[0].total[0]?.count || 0,
+        byStatus: stats[0].byStatus,
+        byPriority: stats[0].byPriority,
+        byWorkType: stats[0].byWorkType
+      }
     });
   } catch (error) {
-    console.error('Get TODO stats error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching TODO statistics',
+      error: error.message
+    });
   }
+};
+
+// Update TODO status only
+const updateTodoStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid TODO ID'
+      });
+    }
+
+    const validStatuses = ['TODO', 'Delayed', 'Give Up', 'In Progress', 'Completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const updatedTodo = await TODO.findOneAndUpdate(
+      { _id: id, user: req.user._id },
+      { status },
+      { new: true }
+    );
+
+    if (!updatedTodo) {
+      return res.status(404).json({
+        success: false,
+        message: 'TODO not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'TODO status updated successfully',
+      data: updatedTodo
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating TODO status',
+      error: error.message
+    });
+  }
+};
+
+// Bulk update status
+const bulkUpdateStatus = async (req, res) => {
+  try {
+    const { ids, status } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide an array of TODO IDs'
+      });
+    }
+
+    const validStatuses = ['TODO', 'Delayed', 'Give Up', 'In Progress', 'Completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status value'
+      });
+    }
+
+    const result = await TODO.updateMany(
+      { _id: { $in: ids }, user: req.user._id },
+      { status }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: `${result.modifiedCount} TODO(s) updated successfully`,
+      modifiedCount: result.modifiedCount
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error updating TODOs',
+      error: error.message
+    });
+  }
+};
+
+module.exports = {
+  createTodo,
+  getAllTodos,
+  getTodoById,
+  updateTodo,
+  deleteTodo,
+  deleteMultipleTodos,
+  searchTodos,
+  filterTodos,
+  getTodosByStatus,
+  getTodosByPriority,
+  getTodosByWorkType,
+  getOverdueTodos,
+  getUpcomingTodos,
+  getTodaysTodos,
+  getTodoStats,
+  updateTodoStatus,
+  bulkUpdateStatus
 };
